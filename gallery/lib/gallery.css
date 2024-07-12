@@ -1,13 +1,25 @@
 .gallery {
+    position: relative;
     width: 100%;
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
+    padding: 0 3rem;
+    box-sizing: border-box;
+}
+
+.gallery.gallery-draggable {
+    cursor: grab;
+}
+
+.gallery-line-container {
+    overflow: hidden;
 }
 
 .gallery-line {
     display: flex;
     align-items: center;
+    overflow: hidden;
 }
 
 .gallery-slide {
@@ -26,6 +38,7 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
+    margin-top: 20px;
 }
 
 .gallery-dot {
@@ -46,10 +59,48 @@
 }
 
 .gallery-nav {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    padding: 10px;
+    width: 100%;
     cursor: pointer;
+}
+
+.gallery-nav-left,
+.gallery-nav-right {
+    cursor: pointer;
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border: none;
+    outline: none;
+    z-index: 1;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.gallery-nav-left {
+    left: 0;
+    background: url('../img/chevron-left.svg') no-repeat center;
+    background-size: contain;
+}
+
+.gallery-nav-right {
+    right: 0;
+    background: url('../img/chevron-right.svg') no-repeat center;
+    background-size: contain;
+}
+
+.gallery-nav-disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+@media (max-width: 576px) {
+    .gallery {
+        padding: 0;
+    }
+
+    .gallery-nav {
+        display: none;
+    }
 }

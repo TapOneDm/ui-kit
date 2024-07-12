@@ -1,12 +1,15 @@
 const GalleryClassName = 'gallery';
+const GalleryLineContainerClassName = 'gallery-line-container';
 const GalleryLineClassName = 'gallery-line';
 const GallerySlideClassName = 'gallery-slide';
+const GalleryDraggableClassName = 'gallery-draggable';
 const GalleryDotsClassName = 'gallery-dots';
 const GalleryDotClassName = 'gallery-dot';
 const GalleryDotActiveClassName = 'gallery-dot-active';
 const GalleryNavClassName = 'gallery-nav';
 const GalleryNavLeftClassName = 'gallery-nav-left';
 const GalleryNavRightClassName = 'gallery-nav-right';
+const GalleryNavDisabledClassName = 'gallery-nav-disabled';
 
 class Gallery {
     constructor(element, options = {}) {
@@ -30,6 +33,7 @@ class Gallery {
         this.moveLeft = this.moveLeft.bind(this);
         this.moveRight = this.moveRight.bind(this);
         this.changeActiveDotClass = this.changeActiveDotClass.bind(this);
+        this.changeDisabledNav = this.changeDisabledNav.bind(this);
 
         this.manageHTML();
         this.setParams();
@@ -39,16 +43,19 @@ class Gallery {
     manageHTML() {
         this.containerNode.classList.add(GalleryClassName);
         this.containerNode.innerHTML = `
-            <div class="${GalleryLineClassName}">
-                ${this.containerNode.innerHTML}
+            <div class="${GalleryLineContainerClassName}">
+                <div class="${GalleryLineClassName}">
+                    ${this.containerNode.innerHTML}
+                </div>
+                <div class="${GalleryNavClassName}">
+                    <button class="${GalleryNavLeftClassName}"></button>
+                    <button class="${GalleryNavRightClassName}"></button>
+                </div>
+                <div class="${GalleryDotsClassName}"></div>
             </div>
-            <div class="${GalleryNavClassName}">
-                <button class="${GalleryNavLeftClassName}">Left</button>
-                <button class="${GalleryNavRightClassName}">Reft</button>
-            </div>
-            <div class="${GalleryDotsClassName}"></div>
         `;
 
+        this.lineContainerNode = this.containerNode.querySelector(`.${GalleryLineContainerClassName}`);
         this.lineNode = this.containerNode.querySelector(`.${GalleryLineClassName}`);
         this.dotsNode = this.containerNode.querySelector(`.${GalleryDotsClassName}`);
 
@@ -64,14 +71,16 @@ class Gallery {
     }
 
     setParams() {
-        const coordsContainer = this.containerNode.getBoundingClientRect();
-        this.width = coordsContainer.width;
+        const coordsLineContainer = this.lineContainerNode.getBoundingClientRect();
+        this.width = coordsLineContainer.width;
         this.maximumX = -(this.size - 1) * (this.width + this.settings.margin);
         this.x = -this.currentSlideIndex * (this.width + this.settings.margin);
 
         this.resetStyleTransition();
         this.lineNode.style.width = `${this.size * (this.width + this.settings.margin)}px`;
         this.setStylePosition();
+        this.changeActiveDotClass();
+        this.changeDisabledNav();
 
         Array.from(this.slideNodes).forEach((slideNode) => {
             slideNode.style.width = `${this.width}px`;
@@ -108,16 +117,19 @@ class Gallery {
 
     startDrag(e) {
         this.currentSlideWasChanged = false;
-        this.currentSlideIndex
+        this.currentSlideIndex;
 
         this.clickX = e.pageX;
         this.startX = this.x;
         this.resetStyleTransition();
+
+        this.containerNode.classList.add(`${GalleryDraggableClassName}`);
         window.addEventListener('pointermove', this.dragging);
     }
 
     stopDrag() {
         window.removeEventListener('pointermove', this.dragging);
+        this.containerNode.classList.remove(`${GalleryDraggableClassName}`);
         this.changeCurrentSlide();
     }
 
@@ -158,7 +170,7 @@ class Gallery {
             return;
         }
 
-        const countSwipes = Math.abs(this.currentSlideIndex - dotNumber)
+        const countSwipes = Math.abs(this.currentSlideIndex - dotNumber);
         this.currentSlideIndex = dotNumber;
         this.changeCurrentSlide(countSwipes);
     }
@@ -186,16 +198,30 @@ class Gallery {
         this.setStylePosition();
         this.setStyleTransition(countSwipes);
         this.changeActiveDotClass();
+        this.changeDisabledNav();
     }
 
     changeActiveDotClass() {
         for (let i = 0; i < this.dotNodes.length; i++) {
-            this.dotNodes[i].classList.remove(`${GalleryDotActiveClassName}`)
+            this.dotNodes[i].classList.remove(`${GalleryDotActiveClassName}`);
         }
-        console.log('aa');
-        this.dotNodes[this.currentSlideIndex].classList.add(`${GalleryDotActiveClassName}`)
+
+        this.dotNodes[this.currentSlideIndex].classList.add(`${GalleryDotActiveClassName}`);
     }
 
+    changeDisabledNav() {
+        if (this.currentSlideIndex <= 0) {
+            this.navLeft.classList.add(`${GalleryNavDisabledClassName}`)
+        } else {
+            this.navLeft.classList.remove(`${GalleryNavDisabledClassName}`)
+        }
+
+        if (this.currentSlideIndex >= this.size - 1) {
+            this.navRight.classList.add(`${GalleryNavDisabledClassName}`)
+        } else {
+            this.navRight.classList.remove(`${GalleryNavDisabledClassName}`)
+        }
+    }
     setStylePosition() {
         this.lineNode.style.transform = `translate3d(${this.x}px, 0, 0)`;
     }
